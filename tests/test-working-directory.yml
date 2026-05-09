@@ -1,0 +1,44 @@
+name: Test working-directory and artifact inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          name: "Working Directory Test Results"
+          path: "test-results/results.xml"
+          reporter: java-junit
+          working-directory: "actions/hardened/phoenix-actions--test-reporting/v14/tests/fixtures/subdir"
+          artifact: ""
+          list-suites: all
+          list-tests: all
+          max-annotations: 10
+          fail-on-error: "false"
+          output-to: step-summary
+      - name: Assert conclusion output
+        env:
+          ACTUAL: ${{ steps.action.outputs.conclusion }}
+        run: |
+          echo "conclusion: $ACTUAL"
+          if [ "$ACTUAL" != "success" ]; then
+            echo "FAIL: expected conclusion 'success', got '$ACTUAL'"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert passed count
+        env:
+          ACTUAL: ${{ steps.action.outputs.passed }}
+        run: |
+          echo "passed: $ACTUAL"
+          if [ "$ACTUAL" != "1" ]; then
+            echo "FAIL: expected passed '1', got '$ACTUAL'"
+            exit 1
+          fi
+          echo "PASS"

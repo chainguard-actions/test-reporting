@@ -1,0 +1,43 @@
+name: Test Jest JUnit reporting
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          name: "Jest Test Results"
+          path: "actions/hardened/phoenix-actions--test-reporting/v14/tests/fixtures/jest-results/results.xml"
+          reporter: jest-junit
+          list-suites: failed
+          list-tests: failed
+          max-annotations: 5
+          fail-on-error: "false"
+          only-summary: "true"
+          output-to: step-summary
+      - name: Assert conclusion output
+        env:
+          ACTUAL: ${{ steps.action.outputs.conclusion }}
+        run: |
+          echo "conclusion: $ACTUAL"
+          if [ "$ACTUAL" != "success" ]; then
+            echo "FAIL: expected conclusion 'success', got '$ACTUAL'"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert passed count
+        env:
+          ACTUAL: ${{ steps.action.outputs.passed }}
+        run: |
+          echo "passed: $ACTUAL"
+          if [ "$ACTUAL" != "2" ]; then
+            echo "FAIL: expected passed '2', got '$ACTUAL'"
+            exit 1
+          fi
+          echo "PASS"

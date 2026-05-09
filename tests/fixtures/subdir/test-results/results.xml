@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Subdir Test Suite" tests="1" failures="0" errors="0" time="0.100">
+  <testsuite name="com.example.SubdirTest" tests="1" failures="0" errors="0" time="0.100">
+    <testcase name="testSubdir" classname="com.example.SubdirTest" time="0.100"/>
+  </testsuite>
+</testsuites>
