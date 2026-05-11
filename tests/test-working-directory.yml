@@ -1,0 +1,42 @@
+name: Test working-directory input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          name: "JUnit Results with working-directory"
+          path: "actions/hardened/phoenix-actions--test-reporting/v16/tests/fixtures/junit-results/results.xml"
+          reporter: java-junit
+          list-suites: all
+          list-tests: all
+          max-annotations: '10'
+          fail-on-error: 'false'
+          output-to: step-summary
+          working-directory: "."
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Assert conclusion is success
+        env:
+          CONCLUSION: ${{ steps.action.outputs.conclusion }}
+        run: |
+          echo "conclusion: $CONCLUSION"
+          if [ "$CONCLUSION" != "success" ]; then
+            echo "FAIL: expected conclusion to be 'success', got '$CONCLUSION'"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert passed count
+        env:
+          PASSED: ${{ steps.action.outputs.passed }}
+        run: |
+          echo "passed: $PASSED"
+          if [ "$PASSED" != "3" ]; then
+            echo "FAIL: expected passed=3, got '$PASSED'"
+            exit 1
+          fi
+          echo "PASS"
