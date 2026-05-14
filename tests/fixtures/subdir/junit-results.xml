@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Sub Test Suite" tests="2" failures="0" errors="0" time="0.5">
+  <testsuite name="com.example.SubTest" tests="2" failures="0" errors="0" time="0.5">
+    <testcase name="testAlpha" classname="com.example.SubTest" time="0.3"/>
+    <testcase name="testBeta" classname="com.example.SubTest" time="0.2"/>
+  </testsuite>
+</testsuites>
