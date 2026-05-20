@@ -1,7 +1,0 @@
-{
-  "owner": "phoenix-actions",
-  "name": "test-reporting",
-  "visibility": "public",
-  "description": "Shows test results in GitHub UI: .NET (xUnit, NUnit, MSTest), Dart, Flutter, Java (JUnit), JavaScript (JEST, Mocha)\n",
-  "block_publish": false
-}
