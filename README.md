@@ -9,9 +9,9 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
-| v14 | [`v14`](https://github.com/chainguard-actions/test-reporting/tree/v14) | — |
-| v15 | [`v15`](https://github.com/chainguard-actions/test-reporting/tree/v15) | — |
-| v16 | [`v16`](https://github.com/chainguard-actions/test-reporting/tree/v16) | — |
+| v14 | [`v14`](https://github.com/chainguard-actions/phoenix-actions--test-reporting/tree/v14) | — |
+| v15 | [`v15`](https://github.com/chainguard-actions/phoenix-actions--test-reporting/tree/v15) | — |
+| v16 | [`v16`](https://github.com/chainguard-actions/phoenix-actions--test-reporting/tree/v16) | — |
 
 ## Privacy
 
