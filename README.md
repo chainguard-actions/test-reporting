@@ -9,6 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
+| v13 | [`v13`](https://github.com/chainguard-actions/phoenix-actions-test-reporting/tree/v13) | [`ffcf2ef`](https://github.com/phoenix-actions/test-reporting/commit/ffcf2ef5f36b35b7ad5844adb00ba806c12aff17) |
 | v14 | [`v14`](https://github.com/chainguard-actions/phoenix-actions-test-reporting/tree/v14) | [`324c51f`](https://github.com/phoenix-actions/test-reporting/commit/324c51f0cea38b773386b2e7623fda46e826c895) |
 | v15 | [`v15`](https://github.com/chainguard-actions/phoenix-actions-test-reporting/tree/v15) | [`f957cd9`](https://github.com/phoenix-actions/test-reporting/commit/f957cd93fc2d848d556fa0d03c57bc79127b6b5e) |
 | v16 | [`v16`](https://github.com/chainguard-actions/phoenix-actions-test-reporting/tree/v16) | [`7317eea`](https://github.com/phoenix-actions/test-reporting/commit/7317eea6e13c47348dd0bb318669485157c518d6) |
