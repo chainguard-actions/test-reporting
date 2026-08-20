@@ -1,4 +1,4 @@
-name: Test working-directory input
+name: Test JUnit passing results
 on:
   workflow_dispatch:
 jobs:
@@ -7,15 +7,16 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create JUnit test results in a subdirectory
+      - name: Create JUnit test results file
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/my-subdir/test-results"
-          cat > "$GITHUB_WORKSPACE/my-subdir/test-results/results.xml" << 'EOF'
+          mkdir -p "$GITHUB_WORKSPACE/test-results"
+          cat > "$GITHUB_WORKSPACE/test-results/results.xml" << 'EOF'
           <?xml version="1.0" encoding="UTF-8"?>
-          <testsuites name="Test Suite" tests="2" failures="0" errors="0" time="0.500">
-            <testsuite name="com.example.SubdirTest" tests="2" failures="0" errors="0" time="0.500">
-              <testcase name="testAlpha" classname="com.example.SubdirTest" time="0.250"/>
-              <testcase name="testBeta" classname="com.example.SubdirTest" time="0.250"/>
+          <testsuites name="Test Suite" tests="3" failures="0" errors="0" time="1.234">
+            <testsuite name="com.example.MyTest" tests="3" failures="0" errors="0" time="1.234">
+              <testcase name="testOne" classname="com.example.MyTest" time="0.100"/>
+              <testcase name="testTwo" classname="com.example.MyTest" time="0.200"/>
+              <testcase name="testThree" classname="com.example.MyTest" time="0.934"/>
             </testsuite>
           </testsuites>
           EOF
@@ -23,7 +24,7 @@ jobs:
       - id: action
         uses: .
         with:
-          name: Working Directory Test Results
+          name: JUnit Test Results
           path: test-results/results.xml
           reporter: java-junit
           list-suites: all
@@ -31,7 +32,6 @@ jobs:
           max-annotations: 10
           fail-on-error: 'true'
           output-to: step-summary
-          working-directory: my-subdir
 
       - name: Assert conclusion is success
         env:
@@ -49,11 +49,11 @@ jobs:
           PASSED: ${{ steps.action.outputs.passed }}
         run: |
           echo "passed: $PASSED"
-          if [ "$PASSED" != "2" ]; then
-            echo "FAIL: expected 2 passed tests, got '$PASSED'"
+          if [ "$PASSED" != "3" ]; then
+            echo "FAIL: expected 3 passed tests, got '$PASSED'"
             exit 1
           fi
-          echo "PASS: passed count is 2"
+          echo "PASS: passed count is 3"
 
       - name: Assert failed count is zero
         env:

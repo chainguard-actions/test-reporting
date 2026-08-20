@@ -1,0 +1,75 @@
+name: Test JUnit failing results
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create JUnit test results with failures
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/test-results"
+          cat > "$GITHUB_WORKSPACE/test-results/results.xml" << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuites name="Test Suite" tests="3" failures="1" errors="0" time="2.000">
+            <testsuite name="com.example.MyTest" tests="3" failures="1" errors="0" time="2.000">
+              <testcase name="testOne" classname="com.example.MyTest" time="0.500"/>
+              <testcase name="testTwo" classname="com.example.MyTest" time="0.500">
+                <failure message="Expected 1 but was 2" type="AssertionError">
+                  Expected 1 but was 2
+                  at com.example.MyTest.testTwo(MyTest.java:42)
+                </failure>
+              </testcase>
+              <testcase name="testThree" classname="com.example.MyTest" time="1.000"/>
+            </testsuite>
+          </testsuites>
+          EOF
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          name: JUnit Failing Test Results
+          path: test-results/results.xml
+          reporter: java-junit
+          list-suites: all
+          list-tests: failed
+          max-annotations: 10
+          fail-on-error: 'true'
+          output-to: step-summary
+
+      - name: Assert conclusion is failure
+        env:
+          CONCLUSION: ${{ steps.action.outputs.conclusion }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "conclusion: $CONCLUSION"
+          if [ "$CONCLUSION" != "failure" ]; then
+            echo "FAIL: expected conclusion 'failure', got '$CONCLUSION'"
+            exit 1
+          fi
+          echo "PASS: conclusion is failure"
+
+      - name: Assert failed count
+        env:
+          FAILED: ${{ steps.action.outputs.failed }}
+        run: |
+          echo "failed: $FAILED"
+          if [ "$FAILED" != "1" ]; then
+            echo "FAIL: expected 1 failed test, got '$FAILED'"
+            exit 1
+          fi
+          echo "PASS: failed count is 1"
+
+      - name: Assert passed count
+        env:
+          PASSED: ${{ steps.action.outputs.passed }}
+        run: |
+          echo "passed: $PASSED"
+          if [ "$PASSED" != "2" ]; then
+            echo "FAIL: expected 2 passed tests, got '$PASSED'"
+            exit 1
+          fi
+          echo "PASS: passed count is 2"

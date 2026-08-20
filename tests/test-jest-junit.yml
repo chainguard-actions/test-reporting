@@ -1,43 +1,82 @@
-name: Test Jest JUnit reporting
+name: Test Jest JUnit reporter
 on:
   workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_REF: refs/heads/main
-      GITHUB_EVENT_NAME: push
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create Jest JUnit test results file
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/test-results"
+          cat > "$GITHUB_WORKSPACE/test-results/jest-results.xml" << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuites name="jest tests" tests="4" failures="0" errors="0" time="3.456">
+            <testsuite name="MyComponent" tests="2" failures="0" errors="0" time="1.000" timestamp="2024-01-01T00:00:00">
+              <testcase name="renders correctly" classname="MyComponent" time="0.500"/>
+              <testcase name="handles click" classname="MyComponent" time="0.500"/>
+            </testsuite>
+            <testsuite name="MyService" tests="2" failures="0" errors="0" time="2.456" timestamp="2024-01-01T00:00:00">
+              <testcase name="fetches data" classname="MyService" time="1.000"/>
+              <testcase name="handles errors" classname="MyService" time="1.456"/>
+            </testsuite>
+          </testsuites>
+          EOF
+
       - id: action
         uses: .
         with:
-          name: "Jest Test Results"
-          path: "actions/hardened/phoenix-actions--test-reporting/v14/tests/fixtures/jest-results/results.xml"
+          name: Jest Test Results
+          path: test-results/jest-results.xml
           reporter: jest-junit
-          list-suites: failed
-          list-tests: failed
-          max-annotations: 5
-          fail-on-error: "false"
-          only-summary: "true"
+          list-suites: all
+          list-tests: all
+          max-annotations: 10
+          fail-on-error: 'true'
+          only-summary: 'false'
           output-to: step-summary
-      - name: Assert conclusion output
+
+      - name: Assert conclusion is success
         env:
-          ACTUAL: ${{ steps.action.outputs.conclusion }}
+          CONCLUSION: ${{ steps.action.outputs.conclusion }}
         run: |
-          echo "conclusion: $ACTUAL"
-          if [ "$ACTUAL" != "success" ]; then
-            echo "FAIL: expected conclusion 'success', got '$ACTUAL'"
+          echo "conclusion: $CONCLUSION"
+          if [ "$CONCLUSION" != "success" ]; then
+            echo "FAIL: expected conclusion 'success', got '$CONCLUSION'"
             exit 1
           fi
-          echo "PASS"
+          echo "PASS: conclusion is success"
+
       - name: Assert passed count
         env:
-          ACTUAL: ${{ steps.action.outputs.passed }}
+          PASSED: ${{ steps.action.outputs.passed }}
         run: |
-          echo "passed: $ACTUAL"
-          if [ "$ACTUAL" != "2" ]; then
-            echo "FAIL: expected passed '2', got '$ACTUAL'"
+          echo "passed: $PASSED"
+          if [ "$PASSED" != "4" ]; then
+            echo "FAIL: expected 4 passed tests, got '$PASSED'"
             exit 1
           fi
-          echo "PASS"
+          echo "PASS: passed count is 4"
+
+      - name: Assert failed count is zero
+        env:
+          FAILED: ${{ steps.action.outputs.failed }}
+        run: |
+          echo "failed: $FAILED"
+          if [ "$FAILED" != "0" ]; then
+            echo "FAIL: expected 0 failed tests, got '$FAILED'"
+            exit 1
+          fi
+          echo "PASS: failed count is 0"
+
+      - name: Assert time output is set
+        env:
+          TIME: ${{ steps.action.outputs.time }}
+        run: |
+          echo "time: $TIME"
+          if [ -z "$TIME" ]; then
+            echo "FAIL: expected time output to be set"
+            exit 1
+          fi
+          echo "PASS: time output is set"

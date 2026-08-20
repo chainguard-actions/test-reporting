@@ -1,0 +1,76 @@
+name: Test only-summary option with skipped tests
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create JUnit test results with skipped tests
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/test-results"
+          cat > "$GITHUB_WORKSPACE/test-results/results.xml" << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuites name="Test Suite" tests="5" failures="0" errors="0" skipped="2" time="1.500">
+            <testsuite name="com.example.SuiteA" tests="3" failures="0" errors="0" skipped="1" time="1.000">
+              <testcase name="testAlpha" classname="com.example.SuiteA" time="0.400"/>
+              <testcase name="testBeta" classname="com.example.SuiteA" time="0.600">
+                <skipped/>
+              </testcase>
+              <testcase name="testGamma" classname="com.example.SuiteA" time="0.000"/>
+            </testsuite>
+            <testsuite name="com.example.SuiteB" tests="2" failures="0" errors="0" skipped="1" time="0.500">
+              <testcase name="testDelta" classname="com.example.SuiteB" time="0.500"/>
+              <testcase name="testEpsilon" classname="com.example.SuiteB" time="0.000">
+                <skipped/>
+              </testcase>
+            </testsuite>
+          </testsuites>
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          name: Summary Only Test Results
+          path: test-results/results.xml
+          reporter: java-junit
+          list-suites: all
+          list-tests: all
+          max-annotations: 10
+          fail-on-error: 'true'
+          only-summary: 'true'
+          output-to: step-summary
+
+      - name: Assert conclusion is success
+        env:
+          CONCLUSION: ${{ steps.action.outputs.conclusion }}
+        run: |
+          echo "conclusion: $CONCLUSION"
+          if [ "$CONCLUSION" != "success" ]; then
+            echo "FAIL: expected conclusion 'success', got '$CONCLUSION'"
+            exit 1
+          fi
+          echo "PASS: conclusion is success"
+
+      - name: Assert skipped count
+        env:
+          SKIPPED: ${{ steps.action.outputs.skipped }}
+        run: |
+          echo "skipped: $SKIPPED"
+          if [ "$SKIPPED" != "2" ]; then
+            echo "FAIL: expected 2 skipped tests, got '$SKIPPED'"
+            exit 1
+          fi
+          echo "PASS: skipped count is 2"
+
+      - name: Assert passed count
+        env:
+          PASSED: ${{ steps.action.outputs.passed }}
+        run: |
+          echo "passed: $PASSED"
+          if [ "$PASSED" != "3" ]; then
+            echo "FAIL: expected 3 passed tests, got '$PASSED'"
+            exit 1
+          fi
+          echo "PASS: passed count is 3"
