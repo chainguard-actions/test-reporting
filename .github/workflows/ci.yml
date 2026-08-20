@@ -1,0 +1,31 @@
+name: 'CI'
+on:
+  pull_request:
+    paths-ignore: ['**.md']
+  push:
+    paths-ignore: ['**.md']
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  actions: read
+
+jobs:
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - run: npm ci
+      - run: npm run build
+      - run: npm run format-check
+      - run: npm run lint
+      - run: npm test
+
+      - name: Upload test results
+        if: success() || failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: test-results
+          path: __tests__/__results__/*.xml

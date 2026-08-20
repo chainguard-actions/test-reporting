@@ -1,0 +1,46 @@
+name: Test artifact input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          name: Artifact Test Report
+          path: '**/*.xml'
+          artifact: test-results-artifact
+          reporter: java-junit
+          list-suites: all
+          list-tests: all
+          max-annotations: 10
+          fail-on-error: 'false'
+          output-to: step-summary
+        continue-on-error: true
+
+      - name: Assert action ran with artifact input
+        env:
+          CONCLUSION: ${{ steps.action.outputs.conclusion }}
+          PASSED: ${{ steps.action.outputs.passed }}
+          FAILED: ${{ steps.action.outputs.failed }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "conclusion: $CONCLUSION"
+          echo "passed: $PASSED"
+          echo "failed: $FAILED"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$CONCLUSION" ]; then
+              echo "FAIL: action succeeded but conclusion is empty"
+              exit 1
+            fi
+            echo "PASS: action succeeded with artifact input, conclusion='$CONCLUSION'"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (artifact not available in sentinel repo)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

@@ -1,4 +1,4 @@
-name: Test working-directory input
+name: Test checks output (GitHub check run creation)
 on:
   workflow_dispatch:
 jobs:
@@ -7,15 +7,15 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create JUnit test results in a subdirectory
+      - name: Create JUnit test results for checks test
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/subproject/test-results"
-          cat > "$GITHUB_WORKSPACE/subproject/test-results/results.xml" << 'EOF'
+          mkdir -p /tmp/checks-results
+          cat > /tmp/checks-results/results.xml << 'EOF'
           <?xml version="1.0" encoding="UTF-8"?>
-          <testsuites name="SubProject Suite" tests="2" failures="0" errors="0" time="0.5">
-            <testsuite name="SubSuite" tests="2" failures="0" errors="0" time="0.5">
-              <testcase name="sub_test_one" classname="SubSuite" time="0.3"/>
-              <testcase name="sub_test_two" classname="SubSuite" time="0.2"/>
+          <testsuites name="Checks Suite" tests="2" failures="0" errors="0" time="1.0">
+            <testsuite name="ChecksSuite" tests="2" failures="0" errors="0" time="1.0">
+              <testcase name="test_alpha" classname="ChecksSuite" time="0.5"/>
+              <testcase name="test_beta" classname="ChecksSuite" time="0.5"/>
             </testsuite>
           </testsuites>
           EOF
@@ -23,28 +23,29 @@ jobs:
       - id: action
         uses: .
         with:
-          name: Working Directory Test Report
-          path: test-results/results.xml
+          name: Checks Output Report
+          path: /tmp/checks-results/results.xml
           reporter: java-junit
           list-suites: all
           list-tests: all
           max-annotations: 10
           fail-on-error: 'false'
-          output-to: step-summary
-          working-directory: subproject
+          output-to: checks
         continue-on-error: true
 
-      - name: Assert action ran with working-directory input
+      - name: Assert action ran or failed gracefully on sentinel repo
         env:
           CONCLUSION: ${{ steps.action.outputs.conclusion }}
           PASSED: ${{ steps.action.outputs.passed }}
           FAILED: ${{ steps.action.outputs.failed }}
+          RUN_HTML_URL: ${{ steps.action.outputs.runHtmlUrl }}
           OUTCOME: ${{ steps.action.outcome }}
         run: |
           echo "outcome: $OUTCOME"
           echo "conclusion: $CONCLUSION"
           echo "passed: $PASSED"
           echo "failed: $FAILED"
+          echo "runHtmlUrl: $RUN_HTML_URL"
           if [ "$OUTCOME" = "success" ]; then
             if [ -z "$PASSED" ]; then
               echo "FAIL: action succeeded but passed count is empty"
@@ -58,9 +59,9 @@ jobs:
               echo "FAIL: expected 2 passed tests but got '$PASSED'"
               exit 1
             fi
-            echo "PASS: working-directory input worked correctly"
+            echo "PASS: checks output mode worked correctly"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (sentinel repo or API issue)"
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable for check run creation)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1

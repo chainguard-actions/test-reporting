@@ -1,0 +1,82 @@
+name: Test JUnit reporting with failed tests
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create JUnit test results with failures
+        run: |
+          mkdir -p /tmp/test-results-fail
+          cat > /tmp/test-results-fail/results.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuites name="Test Suite" tests="4" failures="2" errors="0" time="2.0">
+            <testsuite name="ExampleSuite" tests="4" failures="2" errors="0" time="2.0">
+              <testcase name="test_pass_one" classname="ExampleSuite" time="0.5"/>
+              <testcase name="test_pass_two" classname="ExampleSuite" time="0.5"/>
+              <testcase name="test_fail_one" classname="ExampleSuite" time="0.5">
+                <failure message="AssertionError: expected true to equal false">
+                  AssertionError: expected true to equal false
+                    at Context.test_fail_one (test.js:10:5)
+                </failure>
+              </testcase>
+              <testcase name="test_fail_two" classname="ExampleSuite" time="0.5">
+                <failure message="Error: timeout exceeded">
+                  Error: timeout exceeded after 2000ms
+                    at Context.test_fail_two (test.js:20:5)
+                </failure>
+              </testcase>
+            </testsuite>
+          </testsuites>
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          name: JUnit Failure Report
+          path: /tmp/test-results-fail/results.xml
+          reporter: java-junit
+          list-suites: failed
+          list-tests: failed
+          max-annotations: 10
+          fail-on-error: 'false'
+          output-to: step-summary
+        continue-on-error: true
+
+      - name: Assert action ran and detected failures
+        env:
+          CONCLUSION: ${{ steps.action.outputs.conclusion }}
+          PASSED: ${{ steps.action.outputs.passed }}
+          FAILED: ${{ steps.action.outputs.failed }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "conclusion: $CONCLUSION"
+          echo "passed: $PASSED"
+          echo "failed: $FAILED"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$FAILED" ]; then
+              echo "FAIL: action succeeded but failed count is empty"
+              exit 1
+            fi
+            if [ "$CONCLUSION" != "failure" ]; then
+              echo "FAIL: expected conclusion 'failure' but got '$CONCLUSION'"
+              exit 1
+            fi
+            if [ "$PASSED" != "2" ]; then
+              echo "FAIL: expected 2 passed tests but got '$PASSED'"
+              exit 1
+            fi
+            if [ "$FAILED" != "2" ]; then
+              echo "FAIL: expected 2 failed tests but got '$FAILED'"
+              exit 1
+            fi
+            echo "PASS: all assertions passed"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo or API issue)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

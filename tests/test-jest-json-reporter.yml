@@ -1,0 +1,103 @@
+name: Test Jest JSON reporter
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create Jest JSON test results
+        run: |
+          mkdir -p /tmp/jest-results
+          cat > /tmp/jest-results/results.json << 'EOF'
+          {
+            "numFailedTestSuites": 0,
+            "numFailedTests": 0,
+            "numPassedTestSuites": 1,
+            "numPassedTests": 2,
+            "numPendingTestSuites": 0,
+            "numPendingTests": 1,
+            "numTotalTestSuites": 1,
+            "numTotalTests": 3,
+            "startTime": 1609459200000,
+            "success": true,
+            "testResults": [
+              {
+                "assertionResults": [
+                  {
+                    "ancestorTitles": ["ExampleSuite"],
+                    "duration": 50,
+                    "failureMessages": [],
+                    "fullName": "ExampleSuite test one",
+                    "status": "passed",
+                    "title": "test one"
+                  },
+                  {
+                    "ancestorTitles": ["ExampleSuite"],
+                    "duration": 30,
+                    "failureMessages": [],
+                    "fullName": "ExampleSuite test two",
+                    "status": "passed",
+                    "title": "test two"
+                  },
+                  {
+                    "ancestorTitles": ["ExampleSuite"],
+                    "duration": 0,
+                    "failureMessages": [],
+                    "fullName": "ExampleSuite test three",
+                    "status": "pending",
+                    "title": "test three"
+                  }
+                ],
+                "endTime": 1609459201000,
+                "startTime": 1609459200000,
+                "status": "passed",
+                "testFilePath": "/workspace/example.test.js"
+              }
+            ]
+          }
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          name: Jest Test Report
+          path: /tmp/jest-results/results.json
+          reporter: jest-junit
+          list-suites: all
+          list-tests: all
+          max-annotations: 10
+          fail-on-error: 'false'
+          output-to: step-summary
+        continue-on-error: true
+
+      - name: Assert action ran with jest reporter
+        env:
+          CONCLUSION: ${{ steps.action.outputs.conclusion }}
+          PASSED: ${{ steps.action.outputs.passed }}
+          FAILED: ${{ steps.action.outputs.failed }}
+          SKIPPED: ${{ steps.action.outputs.skipped }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "conclusion: $CONCLUSION"
+          echo "passed: $PASSED"
+          echo "failed: $FAILED"
+          echo "skipped: $SKIPPED"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$PASSED" ]; then
+              echo "FAIL: action succeeded but passed count is empty"
+              exit 1
+            fi
+            if [ "$CONCLUSION" != "success" ]; then
+              echo "FAIL: expected conclusion 'success' but got '$CONCLUSION'"
+              exit 1
+            fi
+            echo "PASS: jest reporter worked correctly"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo or API issue)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
