@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="3" failures="0" errors="0" time="0.5">
+  <testsuite name="MyTestSuite" errors="0" failures="0" skipped="0" timestamp="2024-01-01T00:00:00" time="0.5" tests="3">
+    <testcase classname="MyTestSuite" name="should pass test one" time="0.1">
+    </testcase>
+    <testcase classname="MyTestSuite" name="should pass test two" time="0.2">
+    </testcase>
+    <testcase classname="MyTestSuite" name="should pass test three" time="0.2">
+    </testcase>
+  </testsuite>
+</testsuites>

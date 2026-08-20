@@ -1,0 +1,54 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 2,
+    "pending": 0,
+    "failures": 0,
+    "start": "2024-01-01T00:00:00.000Z",
+    "end": "2024-01-01T00:00:00.100Z",
+    "duration": 100
+  },
+  "tests": [
+    {
+      "title": "should pass test one",
+      "fullTitle": "MySuite should pass test one",
+      "file": "/workspace/test/main.test.js",
+      "duration": 50,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should pass test two",
+      "fullTitle": "MySuite should pass test two",
+      "file": "/workspace/test/main.test.js",
+      "duration": 50,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    }
+  ],
+  "pending": [],
+  "failures": [],
+  "passes": [
+    {
+      "title": "should pass test one",
+      "fullTitle": "MySuite should pass test one",
+      "file": "/workspace/test/main.test.js",
+      "duration": 50,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should pass test two",
+      "fullTitle": "MySuite should pass test two",
+      "file": "/workspace/test/main.test.js",
+      "duration": 50,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    }
+  ]
+}

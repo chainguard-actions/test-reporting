@@ -1,0 +1,71 @@
+name: Test jest-junit with failing tests
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Copy fixture to workspace
+        run: |
+          cp "$GITHUB_WORKSPACE/tests/fixtures/jest-junit-with-failures.xml" "$GITHUB_WORKSPACE/test-results-failures.xml"
+
+      - id: action
+        uses: .
+        with:
+          name: "Jest Tests With Failures"
+          path: "test-results-failures.xml"
+          reporter: jest-junit
+          list-suites: failed
+          list-tests: failed
+          max-annotations: '10'
+          fail-on-error: 'false'
+          output-to: step-summary
+        continue-on-error: true
+
+      - name: Assert conclusion is failure
+        env:
+          CONCLUSION: ${{ steps.action.outputs.conclusion }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "conclusion: $CONCLUSION"
+          if [ "$CONCLUSION" != "failure" ]; then
+            echo "FAIL: expected conclusion 'failure', got '$CONCLUSION'"
+            exit 1
+          fi
+          echo "PASS: conclusion is failure"
+
+      - name: Assert failed count
+        env:
+          FAILED: ${{ steps.action.outputs.failed }}
+        run: |
+          echo "failed: $FAILED"
+          if [ "$FAILED" != "2" ]; then
+            echo "FAIL: expected 2 failed tests, got '$FAILED'"
+            exit 1
+          fi
+          echo "PASS: failed count is 2"
+
+      - name: Assert passed count
+        env:
+          PASSED: ${{ steps.action.outputs.passed }}
+        run: |
+          echo "passed: $PASSED"
+          if [ "$PASSED" != "1" ]; then
+            echo "FAIL: expected 1 passed test, got '$PASSED'"
+            exit 1
+          fi
+          echo "PASS: passed count is 1"
+
+      - name: Assert skipped count
+        env:
+          SKIPPED: ${{ steps.action.outputs.skipped }}
+        run: |
+          echo "skipped: $SKIPPED"
+          if [ "$SKIPPED" != "1" ]; then
+            echo "FAIL: expected 1 skipped test, got '$SKIPPED'"
+            exit 1
+          fi
+          echo "PASS: skipped count is 1"

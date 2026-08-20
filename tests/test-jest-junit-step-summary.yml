@@ -1,4 +1,4 @@
-name: Test working-directory input
+name: Test jest-junit passing tests with step-summary output
 on:
   workflow_dispatch:
 jobs:
@@ -7,15 +7,14 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Set up test results in a subdirectory
+      - name: Copy fixture to workspace
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/my-subdir"
-          cp "$GITHUB_WORKSPACE/tests/fixtures/jest-junit-passing.xml" "$GITHUB_WORKSPACE/my-subdir/test-results.xml"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/jest-junit-passing.xml" "$GITHUB_WORKSPACE/test-results.xml"
 
       - id: action
         uses: .
         with:
-          name: "Jest Tests in Subdirectory"
+          name: "Jest Unit Tests"
           path: "test-results.xml"
           reporter: jest-junit
           list-suites: all
@@ -23,7 +22,6 @@ jobs:
           max-annotations: '10'
           fail-on-error: 'true'
           output-to: step-summary
-          working-directory: my-subdir
 
       - name: Assert conclusion is success
         env:

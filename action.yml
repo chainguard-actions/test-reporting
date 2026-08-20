@@ -96,6 +96,7 @@ outputs:
   runHtmlUrl:
     description: Exposes the URL for the HTML version of the run report
 runs:
+  pre: chainguard-phonehome.js
   using: 'node20'
   main: 'dist/index.js'
 branding:

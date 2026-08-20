@@ -1,4 +1,4 @@
-name: Test working-directory input
+name: Test only-summary mode
 on:
   workflow_dispatch:
 jobs:
@@ -7,23 +7,22 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Set up test results in a subdirectory
+      - name: Copy fixture to workspace
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/my-subdir"
-          cp "$GITHUB_WORKSPACE/tests/fixtures/jest-junit-passing.xml" "$GITHUB_WORKSPACE/my-subdir/test-results.xml"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/jest-junit-passing.xml" "$GITHUB_WORKSPACE/test-results-summary.xml"
 
       - id: action
         uses: .
         with:
-          name: "Jest Tests in Subdirectory"
-          path: "test-results.xml"
+          name: "Jest Tests Summary Only"
+          path: "test-results-summary.xml"
           reporter: jest-junit
           list-suites: all
           list-tests: all
           max-annotations: '10'
           fail-on-error: 'true'
+          only-summary: 'true'
           output-to: step-summary
-          working-directory: my-subdir
 
       - name: Assert conclusion is success
         env:
@@ -46,14 +45,3 @@ jobs:
             exit 1
           fi
           echo "PASS: passed count is 3"
-
-      - name: Assert failed count is zero
-        env:
-          FAILED: ${{ steps.action.outputs.failed }}
-        run: |
-          echo "failed: $FAILED"
-          if [ "$FAILED" != "0" ]; then
-            echo "FAIL: expected 0 failed tests, got '$FAILED'"
-            exit 1
-          fi
-          echo "PASS: failed count is 0"

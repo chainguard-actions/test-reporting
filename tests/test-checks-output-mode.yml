@@ -1,4 +1,4 @@
-name: Test artifact input
+name: Test checks output mode (GitHub API)
 on:
   workflow_dispatch:
 jobs:
@@ -7,18 +7,21 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - name: Copy fixture to workspace
+        run: |
+          cp "$GITHUB_WORKSPACE/tests/fixtures/jest-junit-passing.xml" "$GITHUB_WORKSPACE/test-results-checks.xml"
+
       - id: action
         uses: .
         with:
-          name: "Jest Tests from Artifact"
-          artifact: "test-results-artifact"
-          path: "**/*.xml"
+          name: "Jest Tests via Checks API"
+          path: "test-results-checks.xml"
           reporter: jest-junit
           list-suites: all
           list-tests: all
           max-annotations: '10'
           fail-on-error: 'false'
-          output-to: step-summary
+          output-to: checks
         continue-on-error: true
 
       - name: Assert action ran (success or graceful failure on sentinel repo)
@@ -35,7 +38,7 @@ jobs:
             fi
             echo "PASS: action succeeded with conclusion '$CONCLUSION'"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (artifact download requires real repo via GitHub API)"
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable via GitHub API)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1

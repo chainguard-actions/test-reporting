@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="4" failures="2" errors="0" time="1.0">
+  <testsuite name="MyTestSuite" errors="0" failures="2" skipped="1" timestamp="2024-01-01T00:00:00" time="1.0" tests="4">
+    <testcase classname="MyTestSuite" name="should pass" time="0.1">
+    </testcase>
+    <testcase classname="MyTestSuite" name="should fail one" time="0.2">
+      <failure>Error: expect(received).toBeTruthy()
+Received: false
+    at Object.&lt;anonymous&gt; (test.js:10:21)</failure>
+    </testcase>
+    <testcase classname="MyTestSuite" name="should fail two" time="0.3">
+      <failure>Error: Some unexpected error
+    at Object.&lt;anonymous&gt; (test.js:20:11)</failure>
+    </testcase>
+    <testcase classname="MyTestSuite" name="should be skipped" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+</testsuites>

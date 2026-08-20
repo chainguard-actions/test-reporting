@@ -1,4 +1,4 @@
-name: Test working-directory input
+name: Test mocha-json reporter with step-summary output
 on:
   workflow_dispatch:
 jobs:
@@ -7,23 +7,21 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Set up test results in a subdirectory
+      - name: Copy fixture to workspace
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/my-subdir"
-          cp "$GITHUB_WORKSPACE/tests/fixtures/jest-junit-passing.xml" "$GITHUB_WORKSPACE/my-subdir/test-results.xml"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/mocha-passing.json" "$GITHUB_WORKSPACE/mocha-results.json"
 
       - id: action
         uses: .
         with:
-          name: "Jest Tests in Subdirectory"
-          path: "test-results.xml"
-          reporter: jest-junit
+          name: "Mocha Tests"
+          path: "mocha-results.json"
+          reporter: mocha-json
           list-suites: all
           list-tests: all
           max-annotations: '10'
           fail-on-error: 'true'
           output-to: step-summary
-          working-directory: my-subdir
 
       - name: Assert conclusion is success
         env:
@@ -41,11 +39,11 @@ jobs:
           PASSED: ${{ steps.action.outputs.passed }}
         run: |
           echo "passed: $PASSED"
-          if [ "$PASSED" != "3" ]; then
-            echo "FAIL: expected 3 passed tests, got '$PASSED'"
+          if [ "$PASSED" != "2" ]; then
+            echo "FAIL: expected 2 passed tests, got '$PASSED'"
             exit 1
           fi
-          echo "PASS: passed count is 3"
+          echo "PASS: passed count is 2"
 
       - name: Assert failed count is zero
         env:
@@ -57,3 +55,14 @@ jobs:
             exit 1
           fi
           echo "PASS: failed count is 0"
+
+      - name: Assert time output is set
+        env:
+          TIME: ${{ steps.action.outputs.time }}
+        run: |
+          echo "time: $TIME"
+          if [ -z "$TIME" ]; then
+            echo "FAIL: expected time output to be set"
+            exit 1
+          fi
+          echo "PASS: time output is set"
