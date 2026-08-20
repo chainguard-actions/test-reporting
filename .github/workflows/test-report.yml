@@ -1,0 +1,24 @@
+name: Test Report
+
+on:
+  workflow_run:
+    workflows: ['CI']
+    types:
+      - completed
+
+permissions:
+  checks: write
+
+jobs:
+  report:
+    name: Workflow test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: ./
+        with:
+          artifact: test-results
+          name: Workflow Report
+          path: '*.xml'
+          reporter: jest-junit

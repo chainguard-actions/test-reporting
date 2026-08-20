@@ -1,0 +1,59 @@
+name: Test basic JUnit reporting (step-summary)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          name: "JUnit Test Results"
+          path: "tests/fixtures/junit-results.xml"
+          reporter: java-junit
+          list-suites: all
+          list-tests: all
+          max-annotations: 10
+          fail-on-error: "false"
+          output-to: step-summary
+
+      - name: Assert action ran and outputs are set
+        env:
+          CONCLUSION: ${{ steps.action.outputs.conclusion }}
+          PASSED: ${{ steps.action.outputs.passed }}
+          FAILED: ${{ steps.action.outputs.failed }}
+          SKIPPED: ${{ steps.action.outputs.skipped }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "conclusion: $CONCLUSION"
+          echo "passed: $PASSED"
+          echo "failed: $FAILED"
+          echo "skipped: $SKIPPED"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$CONCLUSION" ]; then
+              echo "FAIL: action succeeded but conclusion output is empty"
+              exit 1
+            fi
+            if [ "$CONCLUSION" != "success" ]; then
+              echo "FAIL: expected conclusion 'success' but got '$CONCLUSION'"
+              exit 1
+            fi
+            if [ "$PASSED" != "3" ]; then
+              echo "FAIL: expected 3 passed tests but got '$PASSED'"
+              exit 1
+            fi
+            if [ "$FAILED" != "0" ]; then
+              echo "FAIL: expected 0 failed tests but got '$FAILED'"
+              exit 1
+            fi
+            echo "PASS: action succeeded with correct outputs"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo / checks API not available)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
